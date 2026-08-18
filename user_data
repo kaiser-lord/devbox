@@ -1,0 +1,36 @@
+#!/bin/bash
+set -e
+
+# Update package lists and install base tools
+apt-get update -y
+apt-get install -y curl sudo unzip
+
+# Install AWS CLI (needed to fetch the secret at boot)
+curl "https://awscli.amazonaws.com/awscli-exe-linux-aarch64.zip" -o "awscliv2.zip"
+unzip awscliv2.zip
+./aws/install
+rm -rf awscliv2.zip aws/
+
+# Install code-server using the official install script
+curl -fsSL https://code-server.dev/install.sh | sh
+
+# Fetch the code-server password from Secrets Manager
+CODE_SERVER_PASSWORD=$(aws secretsmanager get-secret-value \
+  --secret-id devbox/code-server-password \
+  --region us-east-2 \
+  --query SecretString \
+  --output text)
+
+# Create code-server config directory
+mkdir -p /root/.config/code-server
+
+# Configure code-server: bind to localhost only, use fetched password
+cat > /root/.config/code-server/config.yaml << EOF
+bind-addr: 127.0.0.1:8080
+auth: password
+password: ${CODE_SERVER_PASSWORD}
+cert: false
+EOF
+
+# Enable and start code-server as a systemd service
+systemctl enable --now code-server@root
