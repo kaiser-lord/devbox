@@ -5,7 +5,7 @@ export HOME=/root
 
 # Update package lists and install base tools
 apt-get update -y
-apt-get install -y curl sudo unzip
+apt-get install -y curl sudo unzip git
 
 # Install the SSM agent (not preinstalled on Debian's official AMI)
 curl -o /tmp/amazon-ssm-agent.deb "https://s3.us-east-2.amazonaws.com/amazon-ssm-us-east-2/latest/debian_arm64/amazon-ssm-agent.deb"
